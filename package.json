@@ -2,6 +2,7 @@
   "name": "shopping-copilot",
   "private": true,
   "scripts": {
+    "postinstall": "pnpm --filter @shopping-copilot/shared build && pnpm --filter server exec prisma generate",
     "build": "pnpm -r build",
     "dev": "pnpm --filter @shopping-copilot/shared build && pnpm --parallel --filter server --filter web dev",
     "test": "pnpm -r test",

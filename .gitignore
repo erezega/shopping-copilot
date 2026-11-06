@@ -7,6 +7,6 @@ coverage
 playwright-report
 test-results
 .DS_Store
-src/prisma/generated
+apps/server/src/prisma/generated/
 .playwright-mcp
 e2e.db
