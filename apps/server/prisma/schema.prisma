@@ -1,0 +1,34 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/prisma/generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Conversation {
+  id        String    @id
+  title     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([updatedAt])
+}
+
+/// One row per AI SDK UIMessage. `parts` is the UIMessage parts array serialized as JSON
+/// (text + tool calls + tool outputs), so a conversation can be restored exactly as rendered.
+model Message {
+  id             String       @id
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  parts          String
+  /// Monotonic ordering inside a conversation; createdAt can tie within the same millisecond.
+  seq            Int
+  createdAt      DateTime     @default(now())
+
+  @@unique([conversationId, seq])
+}

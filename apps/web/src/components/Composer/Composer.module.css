@@ -1,0 +1,33 @@
+.composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+}
+.composer:focus-within { border-color: var(--accent); }
+.input {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 6px 8px;
+  max-height: 160px;
+  field-sizing: content;
+}
+.button {
+  border: none;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.button:disabled { opacity: 0.4; cursor: default; }

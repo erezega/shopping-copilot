@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+*.db
+*.db-journal
+coverage
+playwright-report
+test-results
+.DS_Store
+src/prisma/generated
+.playwright-mcp
+e2e.db

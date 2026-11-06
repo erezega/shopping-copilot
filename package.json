@@ -1,0 +1,12 @@
+{
+  "name": "shopping-copilot",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @shopping-copilot/shared build && pnpm --parallel --filter server --filter web dev",
+    "test": "pnpm -r test",
+    "e2e": "pnpm --filter web e2e",
+    "eval": "pnpm --filter server eval"
+  },
+  "packageManager": "pnpm@12.3.4"
+}

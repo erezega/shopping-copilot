@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1392">
+<title>Shopping Copilot architecture</title>
+<desc>A React single-page app talks only to a NestJS server through the Vite dev proxy. POST /api/chat sends just the new user message; the server loads the conversation history from SQLite, runs the Vercel AI SDK agent loop against OpenAI gpt-6-luna with two tools, executes those tools against the DummyJSON API through CatalogService (per-keyword search, local ranking, price filtering, caching), streams the result back as typed UI-message parts that the browser renders as product cards, and persists the assistant message in SQLite when the stream finishes. A shared package holds the Zod schemas and types that form the contract between tool outputs and product widgets. Tests replace the LLM with a scripted model and DummyJSON with a fake; a separate eval runs the real model.</desc>
+<!-- Generated layout. Bands span x=40..1360: band 1 y=52..242, band 2 y=312..912, band 3 y=972..1122, band 4 y=1182..1332. Blue tags above boxes name the source folder and Nest module. Request path is blue, the LLM/agent loop amber, type-only and test links dashed grey. -->
+<rect x="0" y="0" width="1400" height="1392" fill="#0C1218"/>
+<defs><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path fill="#74B2EE" d="M0,0 L10,5 L0,10 z"/></marker><marker id="a-llm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path fill="#E0AC4E" d="M0,0 L10,5 L0,10 z"/></marker><marker id="a-mute" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path fill="#8A9AA9" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="282" y="64">apps/web/</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="962" y="74">shared/</text>
+<rect fill="#FFFFFF" fill-opacity="0.022" stroke="#1E2A35" stroke-width="1" stroke-dasharray="5 6" x="40" y="52" width="1320" height="190" rx="10"/>
+<rect fill="#74B2EE" fill-opacity="0.08" stroke="#74B2EE" stroke-width="1.4" x="280" y="72" width="540" height="150" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="550.0" y="104">Web app</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="550.0" y="130">React 19 · Vite 8 · CSS Modules</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="550.0" y="150">Sidebar · ChatView (useChat, AI SDK) · Composer</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="550.0" y="170">tool parts → ProductResults · ProductDetails</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="550.0" y="190">active conversation id lives in the URL ?c=…</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="960" y="82" width="360" height="130" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="1140.0" y="114">@shopping-copilot/shared</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="1140.0" y="140">Zod schemas</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="1140.0" y="160">ProductSummary · tool output types</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="1140.0" y="180">one contract for server + web</text>
+<polyline fill="none" stroke="#8A9AA9" stroke-width="1.5" stroke-dasharray="6 5" points="960,147 822,147" marker-end="url(#a-mute)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="middle" x="891" y="139">import type</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="430,222 430,338" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#74B2EE" text-anchor="end" x="418" y="256">POST /api/chat</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#74B2EE" text-anchor="end" x="418" y="274">{ id, newMessage } → SSE stream</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="800,222 800,338" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#74B2EE" text-anchor="start" x="812" y="256">GET · DELETE</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#74B2EE" text-anchor="start" x="812" y="274">/api/conversations</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="middle" x="615" y="256">Vite dev proxy</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="middle" x="615" y="274">/api → :3100</text>
+<rect fill="#FFFFFF" fill-opacity="0.022" stroke="#1E2A35" stroke-width="1" stroke-dasharray="5 6" x="40" y="312" width="1320" height="600" rx="10"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="182" y="332">chat/ · ChatModule</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="830" y="332">conversations/ · ConversationsModule</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="82" y="532">llm/ · LlmModule</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="442" y="532">agent/ · no Nest</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="832" y="532">prisma/ · PrismaModule (global)</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="442" y="742">catalog/ · CatalogModule</text>
+<rect fill="#74B2EE" fill-opacity="0.08" stroke="#74B2EE" stroke-width="1.4" x="180" y="340" width="500" height="140" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="430.0" y="372">ChatController → ChatService</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="430.0" y="398">controller: validate request · pipe SSE</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="430.0" y="418">service: save user msg (1 transaction)</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="430.0" y="438">streamText · ≤ 5 steps · last 20 messages</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="430.0" y="458">onFinish saves answer · 503 if DB fails</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="760" y="340" width="460" height="140" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="990.0" y="372">ConversationsService</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="398">appendUserMessage · saveAssistantMessage</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="418">each write = one transaction</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="438">list · get · delete · ordered by seq</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="458">corrupted rows skipped, not fatal</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="682,410 758,410" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="middle" x="720" y="400">history</text>
+<polyline fill="none" stroke="#8A9AA9" stroke-width="1.5" stroke-dasharray="6 5" points="1140,212 1140,338" marker-end="url(#a-mute)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="start" x="1152" y="256">Zod / types</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="80" y="540" width="300" height="130" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="230.0" y="572">LANGUAGE_MODEL</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="230.0" y="598">injected provider</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="230.0" y="618">OpenAI — or a scripted</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="230.0" y="638">model when MOCK_LLM=1</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="440" y="540" width="320" height="150" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="600.0" y="572">Agent</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="598">system prompt · limits (≤ 5 steps)</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="618">tools: searchProducts</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="638">       getProductDetails</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="658">Zod input · category = live enum</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="830" y="540" width="320" height="130" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="990.0" y="572">PrismaService</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="598">Prisma 7 · better-sqlite3 adapter</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="618">Conversation · Message</text>
+<polyline fill="none" stroke="#E0AC4E" stroke-width="1.5" points="230,480 230,538" marker-end="url(#a-llm)"/>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="600,480 600,538" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="612" y="510">tools + prompt</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="1100,480 1100,538" marker-end="url(#a-flow)"/>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="440" y="750" width="320" height="130" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="600.0" y="782">CatalogService</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="808">per-keyword search → merge, rank</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="828">price filter + sort (API has none)</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="848">10-min cache · 8 s timeout</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="700,690 700,748" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="712" y="724">execute()</text>
+<rect fill="#FFFFFF" fill-opacity="0.022" stroke="#1E2A35" stroke-width="1" stroke-dasharray="5 6" x="40" y="972" width="1320" height="150" rx="10"/>
+<rect fill="#E0AC4E" fill-opacity="0.08" stroke="#E0AC4E" stroke-width="1.4" x="80" y="992" width="300" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="230.0" y="1024">OpenAI · gpt-6-luna</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="230.0" y="1050">Responses API · tool calling</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="230.0" y="1070">key stays on the server (.env)</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="440" y="992" width="320" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="600.0" y="1024">DummyJSON</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="1050">/search?q · /category/{slug}</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="600.0" y="1070">/category-list · /{id} · limit=0</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="830" y="992" width="320" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="990.0" y="1024">SQLite · dev.db</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="1050">UIMessage parts as JSON,</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="990.0" y="1070">incl. tool outputs → exact re-render</text>
+<polyline fill="none" stroke="#E0AC4E" stroke-width="1.5" points="230,670 230,990" marker-end="url(#a-llm)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#E0AC4E" text-anchor="start" x="242" y="760">agent loop</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#E0AC4E" text-anchor="start" x="242" y="780">text + tool calls</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#E0AC4E" text-anchor="start" x="242" y="800">streamed back</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="600,880 600,990" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="612" y="932">GET, one per keyword</text>
+<polyline fill="none" stroke="#74B2EE" stroke-width="1.5" points="990,670 990,990" marker-end="url(#a-flow)"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#74B2EE" text-anchor="start" x="1002" y="820">read · write</text>
+<rect fill="#FFFFFF" fill-opacity="0.022" stroke="#1E2A35" stroke-width="1" stroke-dasharray="5 6" x="40" y="1182" width="1320" height="150" rx="10"/>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="80" y="1202" width="236" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="198.0" y="1234">Unit — Jest</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="198.0" y="1260">CatalogService · tools</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="198.0" y="1280">fetch mocked</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="332" y="1202" width="236" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="450.0" y="1234">Integration — Jest</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="450.0" y="1260">real Nest + SQLite</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="450.0" y="1280">scripted LLM · fake API</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="584" y="1202" width="236" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="702.0" y="1234">Render — Vitest</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="702.0" y="1260">tool part → cards</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="702.0" y="1280">Testing Library</text>
+<rect fill="#141D26" stroke="#26333F" stroke-width="1.2" x="836" y="1202" width="236" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="954.0" y="1234">E2E — Playwright</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="954.0" y="1260">real browser · both apps</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="954.0" y="1280">refresh · resume · delete</text>
+<rect fill="#E0AC4E" fill-opacity="0.08" stroke="#E0AC4E" stroke-width="1.4" x="1088" y="1202" width="236" height="110" rx="8"/>
+<text font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#E3EBF2" text-anchor="middle" font-weight="600" x="1206.0" y="1234">Eval — real LLM</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="1206.0" y="1260">gpt-6-luna · 9 scenarios</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="middle" x="1206.0" y="1280">asserts tool calls</text>
+<rect x="40" y="24" width="287" height="22" fill="#0C1218"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="start" letter-spacing="2" x="44" y="40">1 · BROWSER — localhost:5173</text>
+<rect x="40" y="284" width="644" height="22" fill="#0C1218"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="start" letter-spacing="2" x="44" y="300">2 · SERVER — NestJS 11 · one module per feature · localhost:3100</text>
+<rect x="40" y="944" width="317" height="22" fill="#0C1218"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="start" letter-spacing="2" x="44" y="960">3 · EXTERNAL SERVICES &amp; STORAGE</text>
+<rect x="40" y="1154" width="515" height="22" fill="#0C1218"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#8A9AA9" text-anchor="start" letter-spacing="2" x="44" y="1170">4 · VERIFICATION — pnpm test · pnpm e2e · pnpm eval</text>
+<line x1="80" y1="1360" x2="112" y2="1360" stroke="#74B2EE" stroke-width="1.5"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="start" x="120" y="1364">request path</text>
+<line x1="250" y1="1360" x2="282" y2="1360" stroke="#E0AC4E" stroke-width="1.5"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="start" x="290" y="1364">LLM / agent loop</text>
+<line x1="450" y1="1360" x2="482" y2="1360" stroke="#8A9AA9" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#8A9AA9" text-anchor="start" x="490" y="1364">type-only / shared contract</text>
+</svg>

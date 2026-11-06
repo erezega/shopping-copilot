@@ -1,0 +1,53 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px;
+  background: var(--surface-muted);
+  border-right: 1px solid var(--border);
+  min-height: 0;
+}
+.newButton {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+}
+.newButton:hover { border-color: var(--accent); }
+.list { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.item, .itemActive { display: flex; align-items: center; border-radius: 8px; }
+.item:hover { background: var(--border); }
+.itemActive { background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+.itemTitle {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.delete {
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+.item:hover .delete, .itemActive:hover .delete, .delete:focus-visible { visibility: visible; }
+.hint { font-size: 13px; color: var(--text-muted); padding: 0 10px; }
+@media (max-width: 720px) {
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 30vh; }
+}

@@ -1,0 +1,47 @@
+.results {
+  margin: 8px 0;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.error {
+  font-size: 13px;
+  color: var(--danger);
+  padding: 8px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+}
+.skeleton {
+  height: 260px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--border) 50%, var(--surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
